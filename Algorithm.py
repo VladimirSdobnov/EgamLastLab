@@ -48,7 +48,8 @@ def subgradient_method(C, D_list, b, lambda_0=None, N_max=100, eps=1e-4, step_ru
         'violations': [],
         'X': [],
         'G': [],
-        'time': []
+        'time iter': [],
+        'time common': time.time()
     }
 
     for N in range(N_max):
@@ -70,7 +71,7 @@ def subgradient_method(C, D_list, b, lambda_0=None, N_max=100, eps=1e-4, step_ru
         history['violations'].append(np.linalg.norm(grad, ord=1))
         history['X'].append(X.copy())
         history['G'].append(G.copy())
-        history['time'].append(time.time() - start_time)
+        history['time iter'].append(time.time() - start_time)
 
         # Критерии останова
         if np.linalg.norm(grad, ord=1) <= eps:
@@ -86,5 +87,7 @@ def subgradient_method(C, D_list, b, lambda_0=None, N_max=100, eps=1e-4, step_ru
 
         # Обновление лямбда с проекцией на неотрицательные
         lambda_k = np.maximum(0, lambda_k + psi * grad)
+
+    history['time common'] = time.time() - history['time common']
 
     return X, lambda_k, history
