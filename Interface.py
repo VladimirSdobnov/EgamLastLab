@@ -4,92 +4,10 @@ import numpy as np
 import time
 import csv
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.ticker as ticker
+import pandas as pd
 import Algorithm as alg
-
-# --- Функции для субградиентного метода (ЗАГЛУШКИ - нужно реализовать!) ---
-
-def subgradient_method(C, D, b, lambda0, N_max, epsilon, step_rule, n):
-    """
-    Реализация субградиентного метода.
-
-    Args:
-        C: Матрица цен (n x n).
-        D: Список матриц ограничений (K x n x n).
-        b: Вектор ограничений (K).
-        lambda0: Начальные значения множителей Лагранжа (K).
-        N_max: Максимальное число итераций.
-        epsilon: Порог точности.
-        step_rule: Правило выбора шага ("1/n" или "const").
-
-    Returns:
-        history: История итераций (список словарей).
-    """
-
-    history = []  # Список для хранения информации о каждой итерации.
-    lambda_k = lambda0.copy()  # Текущее значение lambda
-    X = np.zeros((n,n)) #начальное приближение решения
-    for i in range(N_max):
-        start_time = time.time()
-
-        # 1. Рассчитать X (матрицу решений) - нужно реализовать!
-        #    На основе C, D и lambda_k
-        X = calculate_X(C, D, lambda_k) #заглушка
-
-        # 2. Рассчитать субградиент двойственной функции - нужно реализовать!
-        subgradient = calculate_subgradient(D, X, b) #заглушка
-
-        # 3. Рассчитать целевую функцию - нужно реализовать!
-        objective_value = calculate_objective(C,X,D,b,lambda_k) #заглушка
-
-        # 4. Рассчитать величину нарушения (L1-норма субградиента)
-        violation = np.sum(np.abs(subgradient))
-
-        # 5. Выбрать шаг
-        if step_rule == "1/n":
-            step = 1 / (i + 1)  # Пример правила шага
-        elif step_rule == "const":
-            step = 0.01        # Пример постоянного шага
-        else:
-            raise ValueError("Неверное правило шага")
-
-        # 6. Обновить lambda
-        lambda_k = lambda_k - step * subgradient
-
-        iteration_time = time.time() - start_time
-
-        history.append({
-            "iteration": i,
-            "X": X.copy(),  # Копируем X, чтобы не менялся при следующих итерациях
-            "lambda": lambda_k.copy(),
-            "subgradient": subgradient.copy(),
-            "objective_value": objective_value,
-            "violation": violation,
-            "time": iteration_time
-        })
-
-        if violation < epsilon:
-            print(f"Достигнута точность на итерации {i}")
-            break
-
-    return history
-
-
-def calculate_X(C, D, lambda_k):
-  #Заглушка - надо реализовать расчет X
-  n = C.shape[0]
-  return np.random.rand(n,n)
-
-def calculate_subgradient(D, X, b):
-  #Заглушка - надо реализовать расчет субградиента
-  K = len(b)
-  return np.random.rand(K)
-
-def calculate_objective(C,X,D,b,lambda_k):
-  #Заглушка - надо реализовать расчет целевой функции
-  return np.random.rand(1)[0]
-
 
 # --- Основной класс GUI ---
 class SubgradientGUI:
@@ -141,6 +59,20 @@ class SubgradientGUI:
         self.lambda0_entry = ttk.Entry(self.frame_algo)
         self.lambda0_entry.grid(row=3, column=1, sticky="w")
 
+        # --- Поле для общего времени ---
+        self.total_time_label = ttk.Label(self.frame_params, text="Общее время:")
+        self.total_time_label.grid(row=7, column=0, sticky="w", padx=5, pady=5)
+
+        self.total_time_value = tk.StringVar()
+        self.total_time_value.set("0.00")  # Начальное значение
+        self.total_time_entry = ttk.Entry(self.frame_params, textvariable=self.total_time_value, state="readonly")
+        self.total_time_entry.grid(row=7, column=1, sticky="w", padx=5, pady=5)
+
+        # Кнопки для экспорта данных
+        ttk.Button(self.frame_params, text="Экспортировать C", command=self.export_C).grid(row=5, column=0, pady=5)
+        ttk.Button(self.frame_params, text="Экспортировать b", command=self.export_b).grid(row=5, column=1, pady=5)
+        ttk.Button(self.frame_params, text="Экспортировать D", command=self.export_D).grid(row=6, column=0, pady=5)
+
         # --- Кнопки управления ---
         self.frame_controls = ttk.Frame(master)
         self.frame_controls.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
@@ -153,6 +85,52 @@ class SubgradientGUI:
 
         self.save_log_button = ttk.Button(self.frame_controls, text="Сохранить лог", command=self.save_log)
         self.save_log_button.grid(row=0, column=2, padx=5)
+
+        # --- Границы генерации ---
+        self.frame_generation = ttk.Frame(master)
+        self.frame_generation.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+
+        # Границы для C
+        self.frame_generation_C = ttk.LabelFrame(self.frame_generation, text="Границы для C")
+        self.frame_generation_C.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+        ttk.Label(self.frame_generation_C, text="Нижняя граница:").grid(row=0, column=0, sticky="w")
+        self.lower_bound_C_entry = ttk.Entry(self.frame_generation_C)
+        self.lower_bound_C_entry.grid(row=0, column=1, sticky="w")
+        self.lower_bound_C_entry.insert(0, "0.0")
+
+        ttk.Label(self.frame_generation_C, text="Верхняя граница:").grid(row=1, column=0, sticky="w")
+        self.upper_bound_C_entry = ttk.Entry(self.frame_generation_C)
+        self.upper_bound_C_entry.grid(row=1, column=1, sticky="w")
+        self.upper_bound_C_entry.insert(0, "1.0")
+
+        # Границы для b
+        self.frame_generation_b = ttk.LabelFrame(self.frame_generation, text="Границы для b")
+        self.frame_generation_b.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+
+        ttk.Label(self.frame_generation_b, text="Нижняя граница:").grid(row=0, column=0, sticky="w")
+        self.lower_bound_b_entry = ttk.Entry(self.frame_generation_b)
+        self.lower_bound_b_entry.grid(row=0, column=1, sticky="w")
+        self.lower_bound_b_entry.insert(0, "0.0")
+
+        ttk.Label(self.frame_generation_b, text="Верхняя граница:").grid(row=1, column=0, sticky="w")
+        self.upper_bound_b_entry = ttk.Entry(self.frame_generation_b)
+        self.upper_bound_b_entry.grid(row=1, column=1, sticky="w")
+        self.upper_bound_b_entry.insert(0, "1.0")
+
+        # Границы для D
+        self.frame_generation_D = ttk.LabelFrame(self.frame_generation, text="Границы для D")
+        self.frame_generation_D.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
+
+        ttk.Label(self.frame_generation_D, text="Нижняя граница:").grid(row=0, column=0, sticky="w")
+        self.lower_bound_D_entry = ttk.Entry(self.frame_generation_D)
+        self.lower_bound_D_entry.grid(row=0, column=1, sticky="w")
+        self.lower_bound_D_entry.insert(0, "0.0")
+
+        ttk.Label(self.frame_generation_D, text="Верхняя граница:").grid(row=1, column=0, sticky="w")
+        self.upper_bound_D_entry = ttk.Entry(self.frame_generation_D)
+        self.upper_bound_D_entry.grid(row=1, column=1, sticky="w")
+        self.upper_bound_D_entry.insert(0, "1.0")
 
         # --- Вывод результатов ---
         self.notebook = ttk.Notebook(master)
@@ -209,6 +187,38 @@ class SubgradientGUI:
         self.running = False
         self.history = [] #будем хранить историю итераций
 
+    def export_C(self):
+        if self.C is None:
+            messagebox.showerror("Ошибка", "Матрица C не сгенерирована или не загружена.")
+            return
+        filename = filedialog.asksaveasfilename(defaultextension=".csv", title="Сохранить матрицу C")
+        if filename:
+            self.export_matrix_to_csv(self.C, filename)
+
+    def export_b(self):
+        if self.b is None:
+            messagebox.showerror("Ошибка", "Вектор b не сгенерирован или не загружен.")
+            return
+        filename = filedialog.asksaveasfilename(defaultextension=".csv", title="Сохранить вектор b")
+        if filename:
+            self.export_vector_to_csv(self.b, filename)
+
+    def export_D(self):
+        if self.D is None:
+            messagebox.showerror("Ошибка", "Матрица D не сгенерирована.")
+            return
+
+        filename = filedialog.asksaveasfilename(defaultextension=".xlsx", title="Сохранить матрицы D")
+        if filename:
+            try:
+                with pd.ExcelWriter(filename) as writer:
+                    for i, matrix in enumerate(self.D):
+                        df = pd.DataFrame(matrix)
+                        df.to_excel(writer, sheet_name=f'D_{i}', index=False)
+                messagebox.showinfo("Сохранено", f"Матрицы D успешно сохранены в файл {filename}")
+            except Exception as e:
+                messagebox.showerror("Ошибка", f"Ошибка сохранения файла: {e}")
+
 
     # --- Функции загрузки данных ---
     def load_matrix_from_csv(self, filename):
@@ -229,6 +239,38 @@ class SubgradientGUI:
             messagebox.showerror("Ошибка", f"Ошибка загрузки файла: {e}")
             return None
 
+    def export_matrix_to_csv(self, matrix, filename):
+        """Сохраняет матрицу в CSV файл."""
+        try:
+            np.savetxt(filename, matrix, delimiter=",")
+            messagebox.showinfo("Сохранено", "Матрица успешно сохранена.")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка сохранения файла: {e}")
+
+    def export_vector_to_csv(self, vector, filename):
+        """Сохраняет вектор в CSV файл."""
+        try:
+            np.savetxt(filename, vector, delimiter=",")
+            messagebox.showinfo("Сохранено", "Вектор успешно сохранен.")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка сохранения файла: {e}")
+
+    def export_C(self):
+        if self.C is None:
+            messagebox.showerror("Ошибка", "Матрица C не сгенерирована или не загружена.")
+            return
+        filename = filedialog.asksaveasfilename(defaultextension=".csv", title="Сохранить матрицу C")
+        if filename:
+            self.export_matrix_to_csv(self.C, filename)
+
+    def export_b(self):
+        if self.b is None:
+            messagebox.showerror("Ошибка", "Вектор b не сгенерирован или не загружен.")
+            return
+        filename = filedialog.asksaveasfilename(defaultextension=".csv", title="Сохранить вектор b")
+        if filename:
+            self.export_vector_to_csv(self.b, filename)
+
     def load_C(self):
         filename = filedialog.askopenfilename(title="Выберите файл C")
         if filename:
@@ -247,59 +289,72 @@ class SubgradientGUI:
             self.b = self.load_vector_from_csv(filename)
             print("b загружен")
 
-    # --- Функции автозаполнения ---
-    def generate_matrix(self, n):
-        """Генерирует случайную матрицу размера n x n."""
-        try:
-            n = int(n)
-            matrix = np.random.rand(n, n)
-            return matrix
-        except ValueError:
-            messagebox.showerror("Ошибка", "Некорректный размер матрицы.")
-            return None
-
-    def generate_vector(self, k):
-        """Генерирует случайный вектор размера k."""
-        try:
-            k = int(k)
-            vector = np.random.rand(k)
-            return vector
-        except ValueError:
-            messagebox.showerror("Ошибка", "Некорректный размер вектора.")
-            return None
-
-
     def generate_C(self):
         n = self.n_entry.get()
+        lower_bound = self.lower_bound_C_entry.get()
+        upper_bound = self.upper_bound_C_entry.get()
         if not n:
             messagebox.showerror("Ошибка", "Введите размер задачи n.")
             return
-        self.C = self.generate_matrix(n)
+        self.C = self.generate_matrix(n, lower_bound, upper_bound)
         if self.C is not None:
             print("C сгенерирована")
 
     def generate_D(self):
         n = self.n_entry.get()
         k = self.k_entry.get()
+        lower_bound = self.lower_bound_D_entry.get()
+        upper_bound = self.upper_bound_D_entry.get()
         if not n or not k:
             messagebox.showerror("Ошибка", "Введите размер задачи n и число ограничений K.")
             return
         try:
             n = int(n)
             k = int(k)
-            self.D = [self.generate_matrix(n) for _ in range(k)]  # Список матриц
+            self.D = [self.generate_matrix(n, lower_bound, upper_bound) for _ in range(k)]  # Список матриц
             print("D сгенерирована")
         except Exception as e:
             messagebox.showerror("Ошибка", f"Ошибка при генерации D: {e}")
 
     def generate_b(self):
         k = self.k_entry.get()
+        lower_bound = self.lower_bound_b_entry.get()
+        upper_bound = self.upper_bound_b_entry.get()
         if not k:
             messagebox.showerror("Ошибка", "Введите число ограничений K.")
             return
-        self.b = self.generate_vector(k)
+        self.b = self.generate_vector(k, lower_bound, upper_bound)
         if self.b is not None:
             print("b сгенерирован")
+
+    def generate_matrix(self, n, lower_bound, upper_bound):
+        """Генерирует случайную матрицу размера n x n."""
+        try:
+            n = int(n)
+            lower_bound = float(lower_bound)
+            upper_bound = float(upper_bound)
+            if lower_bound >= upper_bound:
+                 raise ValueError("Нижняя граница должна быть меньше верхней")
+
+            matrix = np.random.uniform(lower_bound, upper_bound, size=(n, n))
+            return matrix
+        except ValueError as e:
+            messagebox.showerror("Ошибка", f"Некорректный размер матрицы или границы: {e}")
+            return None
+
+    def generate_vector(self, k, lower_bound, upper_bound):
+        """Генерирует случайный вектор размера k."""
+        try:
+            k = int(k)
+            lower_bound = float(lower_bound)
+            upper_bound = float(upper_bound)
+            if lower_bound >= upper_bound:
+                 raise ValueError("Нижняя граница должна быть меньше верхней")
+            vector = np.random.uniform(lower_bound, upper_bound, size=k)
+            return vector
+        except ValueError as e:
+            messagebox.showerror("Ошибка", f"Некорректный размер вектора или границы: {e}")
+            return None
 
 
     # --- Функции управления ---
@@ -346,6 +401,8 @@ class SubgradientGUI:
         self.X, self.lambda_k, self.history = alg.subgradient_method(self.C, self.D, self.b, lambda0, N_max, epsilon, step_rule, n)  # Запускаем алгоритм
         print("Тип self.history после вызова subgradient_method:", type(self.history))
         print("Содержимое self.history после вызова subgradient_method:", self.history)
+        total_time = self.history['time common']
+        self.total_time_value.set(f"{total_time:.2f}")
         self.update_gui()
         self.stop_calculation()  # Разблокируем кнопки
 
@@ -388,9 +445,10 @@ class SubgradientGUI:
         # Обновляем журнал
         self.update_log()
 
-    def update_table(self, X):
-        """Обновляет таблицу Treeview матрицей X."""
+    def update_table(self, X):  # Принимаем C как аргумент
+        """Обновляет таблицу Treeview матрицей X, заменяя 1 значениями из C."""
         X = np.array(X)  # Преобразуйте X в массив NumPy (если это еще не сделано)
+        C = np.array(self.C)  # Преобразуйте C в массив NumPy
 
         # Очистить таблицу перед заполнением
         for item in self.table.get_children():
@@ -398,7 +456,7 @@ class SubgradientGUI:
 
         # Определить структуру таблицы (количество столбцов)
         num_cols = X.shape[1]
-        column_ids = [str(i) for i in range(num_cols)]  # ID столбцов
+        column_ids = [str(i + 1) for i in range(num_cols)]  # ID столбцов
         self.table["columns"] = column_ids
         self.table["show"] = "headings"  # Скрыть пустой столбец
 
@@ -410,7 +468,12 @@ class SubgradientGUI:
 
         # Заполнить таблицу данными
         for row in range(X.shape[0]):
-            formatted_row = [f"{x:.0f}" for x in X[row, :]]  # Форматирование чисел
+            formatted_row = []
+            for col in range(X.shape[1]):
+                if X[row, col] > 0.5:  # Если значение в X больше 0.5 (считаем это 1)
+                    formatted_row.append(f"{C[row, col]:.2f}")  # Берем значение из C и форматируем
+                else:
+                    formatted_row.append("0")  # Если 0, то выводим 0.00
             self.table.insert("", "end", values=formatted_row)
 
         # Обновляем scrollregion
@@ -436,19 +499,28 @@ class SubgradientGUI:
             print("Ошибка: self.history имеет неверную структуру.")
 
     def update_log(self):
-        """Обновляет текстовый журнал информацией об итерациях."""
-        if isinstance(self.history, dict):
-            num_iterations = len(self.history['lambda'])
-            for i in range(num_iterations):
-                log_entry = (f"Итерация: {i}\n"
-                             f"  λ: {self.history['lambda'][i]}\n"
-                             f"  Субградиент: {self.history['grad'][i]}\n"
-                             f"  Целевая функция: {self.history['cost'][i]}\n"
-                             f"  Нарушение: {self.history['violations'][i]}\n"
-                             f"  Время: {self.history['time'][i]:.4f} сек\n\n")
-                self.log_text.insert(tk.END, log_entry)
+        """Обновляет журнал."""
+        self.log_text.delete("1.0", tk.END)  # Очищаем журнал
 
-            self.log_text.see(tk.END)  # Прокручиваем в конец
+        if not self.history:
+            self.log_text.insert(tk.END, "Вычислений не было произведено.\n")
+            return
+
+        for i, (lambda_val, grad, cost, violation, time_iter) in enumerate(
+                zip(self.history['lambda'], self.history['grad'], self.history['cost'],
+                    self.history['violations'], self.history['time iter'])):
+            self.log_text.insert(tk.END, f"Итерация {i + 1}:\n")
+            self.log_text.insert(tk.END, f"  lambda: {lambda_val}\n")
+            self.log_text.insert(tk.END, f"  grad: {grad}\n")
+            self.log_text.insert(tk.END, f"  cost: {cost:.2f}\n")
+            self.log_text.insert(tk.END, f"  нарушение: {violation:.2f}\n")
+            self.log_text.insert(tk.END, f"  Время итерации: {time_iter:.4f} секунд\n")
+            self.log_text.insert(tk.END, "\n")
+
+        # Добавляем общее время в конец журнала
+        total_time = self.history['time common']
+        self.log_text.insert(tk.END, f"Общее время работы: {total_time:.2f} секунд.\n")
+        self.log_text.see(tk.END)
 
 
 # --- Запуск GUI ---
