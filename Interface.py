@@ -15,154 +15,172 @@ class SubgradientGUI:
         self.master = master
         master.title("Анализ Субградиентного Метода")
 
+        master.columnconfigure(0, weight=1) 
+        master.rowconfigure(0, weight=1)     
+        master.columnconfigure(1, weight=1)
+        master.rowconfigure(1, weight=1)     
+        master.columnconfigure(2, weight=1) 
+        master.rowconfigure(2, weight=1)     
+
         # --- Параметры задачи ---
         self.frame_params = ttk.LabelFrame(master, text="Параметры Задачи")
-        self.frame_params.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.frame_params.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        
+        for i in range(3):
+            self.frame_params.columnconfigure(i, weight=1) 
 
-        ttk.Label(self.frame_params, text="Размер задачи (n):").grid(row=0, column=0, sticky="w")
+        ttk.Label(self.frame_params, text="Размер задачи (n):").grid(row=0, column=0, pady=5, padx=5, sticky="e")
         self.n_entry = ttk.Entry(self.frame_params)
-        self.n_entry.grid(row=0, column=1, sticky="w")
+        self.n_entry.grid(row=0, column=1, pady=5, padx=5, sticky="ew")
 
-        ttk.Label(self.frame_params, text="Число ограничений (K):").grid(row=1, column=0, sticky="w")
+        ttk.Label(self.frame_params, text="Число ограничений (K):").grid(row=1, column=0, pady=5, padx=5, sticky="e")
         self.k_entry = ttk.Entry(self.frame_params)
-        self.k_entry.grid(row=1, column=1, sticky="w")
+        self.k_entry.grid(row=1, column=1, pady=5, padx=5, sticky="ew")
 
         # Кнопки для загрузки данных И автозаполнения
-        ttk.Button(self.frame_params, text="Загрузить C", command=self.load_C).grid(row=2, column=0, pady=5)
-        ttk.Button(self.frame_params, text="Сгенерировать C", command=self.generate_C).grid(row=2, column=1, pady=5)
+        ttk.Button(self.frame_params, text="Загрузить C", command=self.load_C).grid(row=2, column=0, pady=5, padx=5,  sticky="ew")
+        ttk.Button(self.frame_params, text="Сгенерировать C", command=self.generate_C).grid(row=2, column=1, pady=5, padx=5,  sticky="ew")
 
-        ttk.Button(self.frame_params, text="Загрузить D", command=self.load_D).grid(row=3, column=0, pady=5)
-        ttk.Button(self.frame_params, text="Сгенерировать D", command=self.generate_D).grid(row=3, column=1, pady=5)
+        ttk.Button(self.frame_params, text="Загрузить D", command=self.load_D).grid(row=3, column=0, pady=5, padx=5,  sticky="ew")
+        ttk.Button(self.frame_params, text="Сгенерировать D", command=self.generate_D).grid(row=3, column=1, pady=5, padx=5,  sticky="ew")
 
-        ttk.Button(self.frame_params, text="Загрузить b", command=self.load_b).grid(row=4, column=0, pady=5)
-        ttk.Button(self.frame_params, text="Сгенерировать b", command=self.generate_b).grid(row=4, column=1, pady=5)
+        ttk.Button(self.frame_params, text="Загрузить b", command=self.load_b).grid(row=4, column=0, pady=5, padx=5,  sticky="ew")
+        ttk.Button(self.frame_params, text="Сгенерировать b", command=self.generate_b).grid(row=4, column=1, pady=5, padx=5,  sticky="ew")
 
 
         # --- Параметры алгоритма ---
         self.frame_algo = ttk.LabelFrame(master, text="Параметры Алгоритма")
-        self.frame_algo.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        self.frame_algo.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
 
-        ttk.Label(self.frame_algo, text="Макс. итераций (N_max):").grid(row=0, column=0, sticky="w")
+        for i in range(3):
+            self.frame_algo.columnconfigure(i, weight=1) 
+
+        ttk.Label(self.frame_algo, text="Макс. итераций (N_max):").grid(row=0, column=0, pady=5, padx=5, sticky="e")
         self.n_max_entry = ttk.Entry(self.frame_algo)
-        self.n_max_entry.grid(row=0, column=1, sticky="w")
+        self.n_max_entry.grid(row=0, column=1, pady=5, padx=5, sticky="ew")
 
-        ttk.Label(self.frame_algo, text="Порог точности (ε):").grid(row=1, column=0, sticky="w")
+        ttk.Label(self.frame_algo, text="Порог точности (ε):").grid(row=1, column=0, pady=5, padx=5, sticky="e")
         self.epsilon_entry = ttk.Entry(self.frame_algo)
-        self.epsilon_entry.grid(row=1, column=1, sticky="w")
+        self.epsilon_entry.grid(row=1, column=1, pady=5, padx=5, sticky="ew")
 
-        ttk.Label(self.frame_algo, text="Правило шага:").grid(row=2, column=0, sticky="w")
+        ttk.Label(self.frame_algo, text="Правило шага:").grid(row=2, column=0, pady=5, padx=5, sticky="e")
         self.step_rule_combo = ttk.Combobox(self.frame_algo, values=["1/n", "const"])
-        self.step_rule_combo.grid(row=2, column=1, sticky="w")
+        self.step_rule_combo.grid(row=2, column=1, pady=5, padx=5, sticky="ew")
         self.step_rule_combo.set("1/n")  # Значение по умолчанию
 
-        ttk.Label(self.frame_algo, text="Начальные λ₀ (опционально):").grid(row=3, column=0, sticky="w")
+        ttk.Label(self.frame_algo, text="Начальные λ₀ (опционально):").grid(row=3, column=0, pady=5, padx=5, sticky="e")
         self.lambda0_entry = ttk.Entry(self.frame_algo)
-        self.lambda0_entry.grid(row=3, column=1, sticky="w")
+        self.lambda0_entry.grid(row=3, column=1, pady=5, padx=5, sticky="ew")
 
         # --- Поле для общего времени ---
         self.total_time_label = ttk.Label(self.frame_params, text="Общее время:")
-        self.total_time_label.grid(row=7, column=0, sticky="w", padx=5, pady=5)
+        self.total_time_label.grid(row=7, column=0, sticky="e", padx=5, pady=5)
 
         self.total_time_value = tk.StringVar()
         self.total_time_value.set("0.00")  # Начальное значение
         self.total_time_entry = ttk.Entry(self.frame_params, textvariable=self.total_time_value, state="readonly")
-        self.total_time_entry.grid(row=7, column=1, sticky="w", padx=5, pady=5)
+        self.total_time_entry.grid(row=7, column=1, sticky="nsew", padx=5, pady=5)
 
         # Кнопки для экспорта данных
-        ttk.Button(self.frame_params, text="Экспортировать C", command=self.export_C).grid(row=5, column=0, pady=5)
-        ttk.Button(self.frame_params, text="Экспортировать b", command=self.export_b).grid(row=5, column=1, pady=5)
-        ttk.Button(self.frame_params, text="Экспортировать D", command=self.export_D).grid(row=6, column=0, pady=5)
+        ttk.Button(self.frame_params, text="Экспортировать C", command=self.export_C).grid(row=2, column=2, pady=5, padx=5, sticky="ew")
+        ttk.Button(self.frame_params, text="Экспортировать b", command=self.export_b).grid(row=3, column=2, pady=5, padx=5,  sticky="ew")
+        ttk.Button(self.frame_params, text="Экспортировать D", command=self.export_D).grid(row=4, column=2, pady=5, padx=5,  sticky="ew")
 
         # --- Кнопки управления ---
         self.frame_controls = ttk.Frame(master)
-        self.frame_controls.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
+        self.frame_controls.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+
+        for i in range(3):
+            self.frame_controls.columnconfigure(i, weight=1) 
 
         self.start_button = ttk.Button(self.frame_controls, text="Запуск", command=self.start_calculation)
-        self.start_button.grid(row=0, column=0, padx=5)
+        self.start_button.grid(row=0, column=0, padx=5, sticky="ew")
 
         self.stop_button = ttk.Button(self.frame_controls, text="Остановка", command=self.stop_calculation, state="disabled")
-        self.stop_button.grid(row=0, column=1, padx=5)
+        self.stop_button.grid(row=0, column=1, padx=5, sticky="ew")
 
         self.save_log_button = ttk.Button(self.frame_controls, text="Сохранить лог", command=self.save_log)
-        self.save_log_button.grid(row=0, column=2, padx=5)
+        self.save_log_button.grid(row=0, column=2, padx=5, sticky="ew")
 
         # --- Границы генерации ---
         self.frame_generation = ttk.Frame(master)
-        self.frame_generation.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+        self.frame_generation.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
+
+        for i in range(2):
+            self.frame_generation.columnconfigure(i, weight=1)
 
         # Границы для C
         self.frame_generation_C = ttk.LabelFrame(self.frame_generation, text="Границы для C")
-        self.frame_generation_C.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        self.frame_generation_C.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
-        ttk.Label(self.frame_generation_C, text="Нижняя граница:").grid(row=0, column=0, sticky="w")
+        for i in range(2):
+            self.frame_generation_C.columnconfigure(i, weight=1)
+
+        ttk.Label(self.frame_generation_C, text="Нижняя граница:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
         self.lower_bound_C_entry = ttk.Entry(self.frame_generation_C)
-        self.lower_bound_C_entry.grid(row=0, column=1, sticky="w")
+        self.lower_bound_C_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         self.lower_bound_C_entry.insert(0, "0.0")
 
-        ttk.Label(self.frame_generation_C, text="Верхняя граница:").grid(row=1, column=0, sticky="w")
+        ttk.Label(self.frame_generation_C, text="Верхняя граница:").grid(row=1, column=0, padx=5, pady=5,sticky="e")
         self.upper_bound_C_entry = ttk.Entry(self.frame_generation_C)
-        self.upper_bound_C_entry.grid(row=1, column=1, sticky="w")
+        self.upper_bound_C_entry.grid(row=1, column=1,padx=5, pady=5, sticky="ew")
         self.upper_bound_C_entry.insert(0, "1.0")
 
         # Границы для b
         self.frame_generation_b = ttk.LabelFrame(self.frame_generation, text="Границы для b")
-        self.frame_generation_b.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        self.frame_generation_b.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-        ttk.Label(self.frame_generation_b, text="Нижняя граница:").grid(row=0, column=0, sticky="w")
+        for i in range(2):
+            self.frame_generation_b.columnconfigure(i, weight=1)
+
+        ttk.Label(self.frame_generation_b, text="Нижняя граница:").grid(row=0, column=0,padx=5, pady=5, sticky="e")
         self.lower_bound_b_entry = ttk.Entry(self.frame_generation_b)
-        self.lower_bound_b_entry.grid(row=0, column=1, sticky="w")
+        self.lower_bound_b_entry.grid(row=0, column=1,padx=5, pady=5, sticky="ew")
         self.lower_bound_b_entry.insert(0, "0.0")
 
-        ttk.Label(self.frame_generation_b, text="Верхняя граница:").grid(row=1, column=0, sticky="w")
+        ttk.Label(self.frame_generation_b, text="Верхняя граница:").grid(row=1, column=0, padx=5, pady=5,sticky="e")
         self.upper_bound_b_entry = ttk.Entry(self.frame_generation_b)
-        self.upper_bound_b_entry.grid(row=1, column=1, sticky="w")
+        self.upper_bound_b_entry.grid(row=1, column=1,padx=5, pady=5, sticky="ew")
         self.upper_bound_b_entry.insert(0, "1.0")
 
         # Границы для D
         self.frame_generation_D = ttk.LabelFrame(self.frame_generation, text="Границы для D")
-        self.frame_generation_D.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
+        self.frame_generation_D.grid(row=2, column=0, padx=5, pady=5, sticky="ew")
 
-        ttk.Label(self.frame_generation_D, text="Нижняя граница:").grid(row=0, column=0, sticky="w")
+        for i in range(2):
+            self.frame_generation_D.columnconfigure(i, weight=1)
+
+        ttk.Label(self.frame_generation_D, text="Нижняя граница:").grid(row=0, column=0,padx=5, pady=5, sticky="e")
         self.lower_bound_D_entry = ttk.Entry(self.frame_generation_D)
-        self.lower_bound_D_entry.grid(row=0, column=1, sticky="w")
+        self.lower_bound_D_entry.grid(row=0, column=1,padx=5, pady=5, sticky="ew")
         self.lower_bound_D_entry.insert(0, "0.0")
 
-        ttk.Label(self.frame_generation_D, text="Верхняя граница:").grid(row=1, column=0, sticky="w")
+        ttk.Label(self.frame_generation_D, text="Верхняя граница:").grid(row=1, column=0, sticky="e")
         self.upper_bound_D_entry = ttk.Entry(self.frame_generation_D)
-        self.upper_bound_D_entry.grid(row=1, column=1, sticky="w")
+        self.upper_bound_D_entry.grid(row=1, column=1, padx=5, pady=5,sticky="ew")
         self.upper_bound_D_entry.insert(0, "1.0")
 
         # --- Вывод результатов ---
         self.notebook = ttk.Notebook(master)
-        self.notebook.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.notebook.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
 
         # Таблица X
         self.table_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.table_frame, text="Матрица X")
-
-        # Создаем Canvas для размещения Treeview
-        self.table_canvas = tk.Canvas(self.table_frame)
-        self.table_canvas.pack(side="left", fill="both", expand=True)
-
-        # Добавляем Scrollbars
-        self.table_y_scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.table_canvas.yview)
-        self.table_y_scrollbar.pack(side="right", fill="y")
-        self.table_x_scrollbar = ttk.Scrollbar(self.table_frame, orient="horizontal", command=self.table_canvas.xview)
-        self.table_x_scrollbar.pack(side="bottom", fill="x")
-
-        # Настраиваем Canvas
-        self.table_canvas.configure(yscrollcommand=self.table_y_scrollbar.set,
-                                    xscrollcommand=self.table_x_scrollbar.set)
-        self.table_canvas.bind("<Configure>",
-                               lambda e: self.table_canvas.configure(scrollregion=self.table_canvas.bbox("all")))
-
-        # Создаем внутренний Frame для Treeview
-        self.table_inner_frame = ttk.Frame(self.table_canvas)
-        self.table_canvas.create_window((0, 0), window=self.table_inner_frame, anchor="nw")
+        self.table_frame.rowconfigure(index=0, weight=1)
+        self.table_frame.columnconfigure(index=0, weight=1)
 
         # Создаем Treeview
-        self.table = ttk.Treeview(self.table_inner_frame)
-        self.table.pack(side="left", fill="both", expand=True)
+        self.table = ttk.Treeview(self.table_frame)
+        self.table.grid(row=0, column=0, sticky="nsew")
+
+        yscrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.table.yview)
+        self.table.configure(yscroll=yscrollbar.set)
+        yscrollbar.grid(row=0, column=1, sticky="ns")
+
+        xscrollbar = ttk.Scrollbar(self.table_frame, orient="horizontal", command=self.table.xview)
+        self.table.configure(xscroll=xscrollbar.set)
+        xscrollbar.grid(row=1,columnspan=2, column=0, sticky="ew")
 
         # График нарушения
         self.plot_frame = ttk.Frame(self.notebook)
@@ -462,8 +480,8 @@ class SubgradientGUI:
 
         # Задать заголовки столбцов
         for col_id in column_ids:
-            self.table.heading(col_id, text=col_id)
-            self.table.column(col_id, width=30)  # УМЕНЬШЕННАЯ ШИРИНА СТОЛБЦА
+            self.table.heading(col_id, text=col_id, command=lambda: None)
+            self.table.column(col_id, width=30,  minwidth=30)  # УМЕНЬШЕННАЯ ШИРИНА СТОЛБЦА
             self.table.column(col_id, anchor='center')  # Центрирование текста
 
         # Заполнить таблицу данными
@@ -477,7 +495,7 @@ class SubgradientGUI:
             self.table.insert("", "end", values=formatted_row)
 
         # Обновляем scrollregion
-        self.table_canvas.configure(scrollregion=self.table_canvas.bbox("all"))
+        #self.table.pack(expand=False, fill="both", padx=10, pady=10)
 
     def update_plot(self):
         """Обновляет график зависимости нарушения от номера итерации."""
@@ -526,5 +544,8 @@ class SubgradientGUI:
 # --- Запуск GUI ---
 if __name__ == "__main__":
     root = tk.Tk()
+    ttk.Style().theme_use("clam")
+    ttk.Style().configure(".", font = ('Helvetica', 12, 'bold'))
+
     gui = SubgradientGUI(root)
     root.mainloop()
