@@ -72,14 +72,19 @@ class SubgradientGUI:
         self.lambda0_entry = ttk.Entry(self.frame_algo)
         self.lambda0_entry.grid(row=3, column=1, pady=5, padx=5, sticky="ew")
 
+        ttk.Label(self.frame_params, text="Тип задачи:").grid(row=7, column=0, pady=5, padx=5, sticky="e")
+        self.ztype_combo = ttk.Combobox(self.frame_params, values=['min', 'max'])
+        self.ztype_combo.grid(row=7, column=1, pady=5, padx=5, sticky="ew")
+        self.ztype_combo.set('min')  # Значение по умолчанию
+
         # --- Поле для общего времени ---
         self.total_time_label = ttk.Label(self.frame_params, text="Общее время:")
-        self.total_time_label.grid(row=7, column=0, sticky="e", padx=5, pady=5)
+        self.total_time_label.grid(row=8, column=0, sticky="e", padx=5, pady=5)
 
         self.total_time_value = tk.StringVar()
         self.total_time_value.set("0.00")  # Начальное значение
         self.total_time_entry = ttk.Entry(self.frame_params, textvariable=self.total_time_value, state="readonly")
-        self.total_time_entry.grid(row=7, column=1, sticky="nsew", padx=5, pady=5)
+        self.total_time_entry.grid(row=8, column=1, sticky="nsew", padx=5, pady=5)
 
         # Кнопки для экспорта данных
         ttk.Button(self.frame_params, text="Экспортировать C", command=self.export_C).grid(row=2, column=2, pady=5, padx=5, sticky="ew")
@@ -383,6 +388,7 @@ class SubgradientGUI:
             N_max = int(self.n_max_entry.get())
             epsilon = float(self.epsilon_entry.get())
             step_rule = self.step_rule_combo.get()
+            z_type = self.ztype_combo.get()
 
             # Проверка загрузки/генерации данных
             if self.C is None or self.D is None or self.b is None:
@@ -409,14 +415,14 @@ class SubgradientGUI:
             self.log_text.delete("1.0", tk.END) # Очищаем лог
 
             # Запускаем вычисления в отдельном потоке (чтобы GUI не зависал)
-            self.master.after(0, self.run_calculation, n, K, N_max, epsilon, step_rule, lambda0)
+            self.master.after(0, self.run_calculation, n, K, N_max, epsilon, step_rule, lambda0, z_type)
 
         except ValueError as e:
             messagebox.showerror("Ошибка", f"Ошибка ввода: {e}")
 
-    def run_calculation(self, n, K, N_max, epsilon, step_rule, lambda0):
+    def run_calculation(self, n, K, N_max, epsilon, step_rule, lambda0, z_type):
         """Запускает вычисления субградиентного метода."""
-        self.X, self.lambda_k, self.history = alg.subgradient_method(self.C, self.D, self.b, lambda0, N_max, epsilon, step_rule, n)  # Запускаем алгоритм
+        self.X, self.lambda_k, self.history = alg.subgradient_method(self.C, self.D, self.b, lambda0, N_max, epsilon, step_rule, n, z_type)  # Запускаем алгоритм
         print("Тип self.history после вызова subgradient_method:", type(self.history))
         print("Содержимое self.history после вызова subgradient_method:", self.history)
         total_time = self.history['time common']
@@ -489,7 +495,7 @@ class SubgradientGUI:
             formatted_row = []
             for col in range(X.shape[1]):
                 if X[row, col] > 0.5:  # Если значение в X больше 0.5 (считаем это 1)
-                    formatted_row.append(f"{C[row, col]:.2f}")  # Берем значение из C и форматируем
+                    formatted_row.append(f"{self.X[row, col]:.2f}")  # Берем значение из C и форматируем
                 else:
                     formatted_row.append("0")  # Если 0, то выводим 0.00
             self.table.insert("", "end", values=formatted_row)
