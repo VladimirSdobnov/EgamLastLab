@@ -68,9 +68,13 @@ class SubgradientGUI:
         self.step_rule_combo.grid(row=2, column=1, pady=5, padx=5, sticky="ew")
         self.step_rule_combo.set("1/n")  # Значение по умолчанию
 
-        ttk.Label(self.frame_algo, text="Начальные λ₀ (опционально):").grid(row=3, column=0, pady=5, padx=5, sticky="e")
+        ttk.Label(self.frame_algo, text="Константа (если выбрана)").grid(row=3, column=0, pady=5, padx=5, sticky="e")
+        self.steprconst = ttk.Entry(self.frame_algo)
+        self.steprconst.grid(row=3, column=1, pady=5, padx=5, sticky="ew")
+
+        ttk.Label(self.frame_algo, text="Начальные λ₀ (опционально):").grid(row=4, column=0, pady=5, padx=5, sticky="e")
         self.lambda0_entry = ttk.Entry(self.frame_algo)
-        self.lambda0_entry.grid(row=3, column=1, pady=5, padx=5, sticky="ew")
+        self.lambda0_entry.grid(row=4, column=1, pady=5, padx=5, sticky="ew")
 
         ttk.Label(self.frame_params, text="Тип задачи:").grid(row=7, column=0, pady=5, padx=5, sticky="e")
         self.ztype_combo = ttk.Combobox(self.frame_params, values=['min', 'max'])
@@ -393,6 +397,7 @@ class SubgradientGUI:
             N_max = int(self.n_max_entry.get())
             epsilon = float(self.epsilon_entry.get())
             step_rule = self.step_rule_combo.get()
+            step_const = float(self.steprconst.get())
             z_type = self.ztype_combo.get()
 
             # Проверка загрузки/генерации данных
@@ -420,14 +425,14 @@ class SubgradientGUI:
             self.log_text.delete("1.0", tk.END) # Очищаем лог
 
             # Запускаем вычисления в отдельном потоке (чтобы GUI не зависал)
-            self.master.after(0, self.run_calculation, n, K, N_max, epsilon, step_rule, lambda0, z_type)
+            self.master.after(0, self.run_calculation, n, K, N_max, epsilon, step_rule, lambda0, z_type, step_const)
 
         except ValueError as e:
             messagebox.showerror("Ошибка", f"Ошибка ввода: {e}")
 
-    def run_calculation(self, n, K, N_max, epsilon, step_rule, lambda0, z_type):
+    def run_calculation(self, n, K, N_max, epsilon, step_rule, lambda0, z_type, step_const):
         """Запускает вычисления субградиентного метода."""
-        self.X, self.lambda_k, self.history = alg.subgradient_method(self.C, self.D, self.b, lambda0, N_max, epsilon, step_rule, n, z_type)  # Запускаем алгоритм
+        self.X, self.lambda_k, self.history = alg.subgradient_method(self.C, self.D, self.b, lambda0, N_max, epsilon, step_rule, step_const, z_type)  # Запускаем алгоритм
         print("Тип self.history после вызова subgradient_method:", type(self.history))
         print("Содержимое self.history после вызова subgradient_method:", self.history)
         total_time = self.history['time common']
