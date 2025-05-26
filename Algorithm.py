@@ -7,6 +7,7 @@ def solve_assignment(G, type):
     """
     Решает задачу о назначениях на максимум с помощью алгоритма Венгера.
     """
+    cost_matrix = G
     if type == 'max':
         cost_matrix = -G  # инвертируем знак
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
