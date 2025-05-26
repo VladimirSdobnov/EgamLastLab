@@ -197,10 +197,12 @@ class SubgradientGUI:
         # Журнал
         self.log_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.log_frame, text="Журнал")
-        self.log_text = tk.Text(self.log_frame, wrap="word")
-        self.log_text.pack(fill="both", expand=True)
+        self.log_text = tk.Text(self.log_frame, wrap="word", font =('Helvetica', 16))
+        self.log_frame.rowconfigure(index=0, weight=1)
+        self.log_frame.columnconfigure(index=0, weight=1)
+        self.log_text.grid(row=0,column=0, sticky="nsew")
         self.scrollbar = ttk.Scrollbar(self.log_frame, command=self.log_text.yview)
-        self.scrollbar.pack(side="right", fill="y")
+        self.scrollbar.grid(row=0,column=1, sticky="nse")
         self.log_text['yscrollcommand'] = self.scrollbar.set
 
         # --- Переменные ---
