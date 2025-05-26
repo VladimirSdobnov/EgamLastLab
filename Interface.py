@@ -207,7 +207,7 @@ class SubgradientGUI:
 
         # --- Переменные ---
         self.C = None
-        self.D = None
+        self.D = []
         self.b = None
         self.running = False
         self.history = [] #будем хранить историю итераций
@@ -256,9 +256,10 @@ class SubgradientGUI:
             return None
 
     def load_vector_from_csv(self, filename):
-        """Загружает вектор из CSV файла."""
+        """Загружает вектор из CSV файла и приводит его к одномерному формату."""
         try:
             vector = np.loadtxt(filename, delimiter=",")
+            vector = np.ravel(vector)  # Преобразует вектор в одномерный массив, если это не так
             return vector
         except Exception as e:
             messagebox.showerror("Ошибка", f"Ошибка загрузки файла: {e}")
@@ -305,7 +306,9 @@ class SubgradientGUI:
     def load_D(self):
          filename = filedialog.askopenfilename(title="Выберите файл D")
          if filename:
-            self.D = self.load_matrix_from_csv(filename) #Тут надо доработать, т.к. D - это список матриц.
+            self.D.append(self.load_matrix_from_csv(filename)) #Тут надо доработать, т.к. D - это список матриц.
+            if len(self.D) > int(self.k_entry.get()):
+                self.D.pop(0)
             print("D загружена")
 
     def load_b(self):
@@ -408,7 +411,7 @@ class SubgradientGUI:
                     messagebox.showerror("Ошибка", f"Неверный формат lambda0: {e}")
                     return
             else:
-                lambda0 = np.zeros(K) # Значение по умолчанию
+                lambda0 = np.ones(K) # Значение по умолчанию
 
             # Блокируем элементы управления
             self.start_button["state"] = "disabled"
