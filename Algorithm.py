@@ -3,14 +3,17 @@ from scipy.optimize import linear_sum_assignment
 import time
 
 
-def solve_assignment(G):
+def solve_assignment(G, type):
     """
-    Решает задачу о назначениях с помощью алгоритма Венгера на матрице G
+    Решает задачу о назначениях на максимум с помощью алгоритма Венгера.
     """
-    row_ind, col_ind = linear_sum_assignment(G)
+    if type == 'max':
+        cost_matrix = -G  # инвертируем знак
+    row_ind, col_ind = linear_sum_assignment(cost_matrix)
     X = np.zeros_like(G)
     X[row_ind, col_ind] = 1
     return X
+
 
 
 def compute_subgradient(X, D_list, b):
@@ -24,16 +27,20 @@ def compute_subgradient(X, D_list, b):
     return grad
 
 
-def compute_G(C, D_list, lambd):
+def compute_G(C, D_list, lambd, type):
     """
     Строит матрицу G из C, D^k и lambda^k
     """
     G = C.copy()
-    for k in range(len(D_list)):
-        G += D_list[k] * lambd[k]
+    if type == 'max':
+        for k in range(len(D_list)):
+            G -= D_list[k] * lambd[k]
+    else:
+        for k in range(len(D_list)):
+            G += D_list[k] * lambd[k]
     return G
 
-def subgradient_method(C, D_list, b, lambda_0=None, N_max=100, eps=1e-4, step_rule='1/n', psi_const=1.0):
+def subgradient_method(C, D_list, b, lambda_0=None, N_max=100, eps=1e-4, step_rule='1/n', psi_const=1.0, type='min'):
     """
     Реализация субградиентного метода для задачи о назначениях с дополнительными ограничениями
     """
@@ -56,10 +63,10 @@ def subgradient_method(C, D_list, b, lambda_0=None, N_max=100, eps=1e-4, step_ru
         start_time = time.time()
 
         # Шаг 1: построить G
-        G = compute_G(C, D_list, lambda_k)
+        G = compute_G(C, D_list, lambda_k, type)
 
         # Шаг 2: решить задачу о назначениях
-        X = solve_assignment(G)
+        X = solve_assignment(G, type)
 
         # Шаг 3: субградиент
         grad = compute_subgradient(X, D_list, b)
